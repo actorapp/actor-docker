@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: coturn
+spec:
+  replicas: 2
+  selector:
+    app: coturn
+  template:
+    metadata:
+      name: coturn
+      labels:
+        app: coturn
+    spec:
+      hostNetwork: true
+      nodeSelector:
+        turn: "yes"
+      containers:
+        - name: coturn
+          image: actor/coturn:latest
+          imagePullPolicy: Always
+          env: 
+            - name: TURN_USERNAME
+              value: actor
+            - name: TURN_PASSWORD
+              value: password
+            - name: TURN_PORT
+              value: "3478"
+            - name: TURN_PORT_START
+              value: "25000"
+            - name: TURN_PORT_END
+              value: "25004"
+            - name: TURN_EXTRA
+              value: "--external-ip 144.76.180.136 --realm=actor"
+          ports: 
+          - containerPort: 3478
+          - containerPort: 25000
+          - containerPort: 25001
+          - containerPort: 25002
+          - containerPort: 25003
+          - containerPort: 25004
+          securityContext:
+            privileged: true
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3478
+            initialDelaySeconds: 30
+            timeoutSeconds: 30
