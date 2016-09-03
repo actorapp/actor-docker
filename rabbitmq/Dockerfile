@@ -37,7 +37,7 @@ ENTRYPOINT ["entrypoint.sh"]
 COPY limits.conf /etc/security/
 
 # Exposing Required Ports
-EXPOSE 15672
+EXPOSE 5672 1883 4369 25672 15672
 
 # Starting
 CMD ["rabbitmq-server"]

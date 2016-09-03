@@ -17,7 +17,7 @@ if [ "${RABBITMQ_ERLANG_COOKIE:-}" ]; then
 fi
 
 # Creation of Default User
-if [ ! -f /.USER_INITED ] ; then
+if [ ! -f /var/lib/rabbitmq/.USER_INITED ] ; then
 	if [ "${RABBITMQ_ADMIN_USER:-}" ]; then
 		echo "First run: creating default user '${RABBITMQ_ADMIN_USER}'"
 		echo "[{rabbit, [{default_user, <<\"${RABBITMQ_ADMIN_USER}\">>},{default_pass, <<\"${RABBITMQ_ADMIN_PASSWORD}\">>},{tcp_listeners, [{\"0.0.0.0\", 5672}]}]}]." > /etc/rabbitmq/rabbitmq.config
@@ -25,10 +25,23 @@ if [ ! -f /.USER_INITED ] ; then
 		echo "First run: creating default user 'admin'"
 		echo "[{rabbit, [{default_user, <<\"admin\">>},{default_pass, <<\"actor\">>},{tcp_listeners, [{\"0.0.0.0\", 5672}]}]}]." > /etc/rabbitmq/rabbitmq.config
 	fi
-	touch /.USER_INITED
+	touch /var/lib/rabbitmq/.USER_INITED
 fi
 
 # Fixing permissions
 chown -R rabbitmq:rabbitmq /var/lib/rabbitmq
+
+# Joining cluster
+
+# Temproray joining cluster
+if [ "${RABBITMQ_CLUSTER:-}" ]; then
+	if [ ! -f /var/lib/rabbitmq/.CLUSTERED ] ; then
+		rabbitmq-server -detached
+		rabbitmqctl stop_app
+		rabbitmqctl join_cluster "${RABBITMQ_CLUSTER}"
+		rabbitmqctl start_app
+		rabbitmqctl stop
+	fi
+fi
 
 exec "$@"
