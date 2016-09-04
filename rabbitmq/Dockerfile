@@ -11,7 +11,9 @@ RUN echo 'deb http://www.rabbitmq.com/debian testing main' > /etc/apt/sources.li
 # Installing RabbitMQ and its dependencies
 RUN apt-get update \
 		&& apt-get install -y \
-			rabbitmq-server \
+			rabbitmq-server=3.6.5-1 \
+			sudo \
+			curl \
 		&& rm -rf /var/lib/apt/lists/*
 
 # Setting Environment Variables
@@ -23,15 +25,18 @@ RUN mkdir -p /var/lib/rabbitmq /etc/rabbitmq \
 	&& chown -R rabbitmq:rabbitmq /var/lib/rabbitmq /etc/rabbitmq \
 	&& chmod 777 /var/lib/rabbitmq /etc/rabbitmq
 
+# Copy Auto-Cluster
+COPY autocluster-0.6.1.ez /usr/lib/rabbitmq/lib/rabbitmq_server-3.6.5/plugins/
+COPY rabbitmq_aws-0.1.2.ez /usr/lib/rabbitmq/lib/rabbitmq_server-3.6.5/plugins/
+
 # Installing Plugins
-RUN rabbitmq-plugins enable rabbitmq_management rabbitmq_mqtt --offline
+RUN rabbitmq-plugins enable rabbitmq_management rabbitmq_mqtt autocluster --offline
 
 # Declare Data Volume
 VOLUME /var/lib/rabbitmq
 
 # Setting Entry Point
 COPY entrypoint.sh /usr/local/bin/
-ENTRYPOINT ["entrypoint.sh"]
 
 # MOAR sockets
 COPY limits.conf /etc/security/
@@ -40,4 +45,4 @@ COPY limits.conf /etc/security/
 EXPOSE 5672 1883 4369 25672 15672
 
 # Starting
-CMD ["rabbitmq-server"]
+CMD ["entrypoint.sh"]

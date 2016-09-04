@@ -17,31 +17,50 @@ if [ "${RABBITMQ_ERLANG_COOKIE:-}" ]; then
 fi
 
 # Creation of Default User
-if [ ! -f /var/lib/rabbitmq/.USER_INITED ] ; then
-	if [ "${RABBITMQ_ADMIN_USER:-}" ]; then
-		echo "First run: creating default user '${RABBITMQ_ADMIN_USER}'"
-		echo "[{rabbit, [{default_user, <<\"${RABBITMQ_ADMIN_USER}\">>},{default_pass, <<\"${RABBITMQ_ADMIN_PASSWORD}\">>},{tcp_listeners, [{\"0.0.0.0\", 5672}]}]}]." > /etc/rabbitmq/rabbitmq.config
-	else
-		echo "First run: creating default user 'admin'"
-		echo "[{rabbit, [{default_user, <<\"admin\">>},{default_pass, <<\"actor\">>},{tcp_listeners, [{\"0.0.0.0\", 5672}]}]}]." > /etc/rabbitmq/rabbitmq.config
-	fi
-	touch /var/lib/rabbitmq/.USER_INITED
+if [ "${RABBITMQ_ADMIN_USER:-}" ]; then
+	echo "[{rabbit, [{default_user, <<\"${RABBITMQ_ADMIN_USER}\">>},{default_pass, <<\"${RABBITMQ_ADMIN_PASSWORD}\">>},{tcp_listeners, [{\"0.0.0.0\", 5672}]}]}]." > /etc/rabbitmq/rabbitmq.config
+else
+	echo "[{rabbit, [{default_user, <<\"admin\">>},{default_pass, <<\"actor\">>},{tcp_listeners, [{\"0.0.0.0\", 5672}]}]}]." > /etc/rabbitmq/rabbitmq.config
 fi
 
 # Fixing permissions
 chown -R rabbitmq:rabbitmq /var/lib/rabbitmq
 
-# Joining cluster
+# Setting Domain and Host Names
+# echo "Source hostname ${HOSTNAME}/`hostname -f`"
+if [ "${RABBITMQ_HOSTNAME:-}" ]; then
+	export HOSTNAME="${RABBITMQ_HOSTNAME}"
+fi
+if [ "${RABBITMQ_DOMAIN:-}" ]; then
+	sourceHostname="${HOSTNAME}"
+	destHostname="${sourceHostname}.${RABBITMQ_DOMAIN}"
+	export HOSTNAME="${destHostname}"
+fi
+echo "Setting hostname ${HOSTNAME}"
+sudo hostname "$HOSTNAME"
+echo "127.0.0.1 ${HOSTNAME}" >> /etc/hosts
+echo "Hostname `hostname` set"
 
-# Temproray joining cluster
+# Joining cluster
 if [ "${RABBITMQ_CLUSTER:-}" ]; then
 	if [ ! -f /var/lib/rabbitmq/.CLUSTERED ] ; then
+		echo "Trying to join cluster..."
+		echo "Trying to prestart RabbitMQ"
 		rabbitmq-server -detached
+		sleep 10s
+		echo "Stopping application"
 		rabbitmqctl stop_app
+		echo "Joining..."
 		rabbitmqctl join_cluster "${RABBITMQ_CLUSTER}"
+		touch /var/lib/rabbitmq/.CLUSTERED
+		echo "Starting application to validate settings"
 		rabbitmqctl start_app
-		rabbitmqctl stop
+		echo "Started!"
+	else 
+		echo "Starting..."
+		rabbitmq-server
 	fi
+else 
+	echo "Starting..."
+	rabbitmq-server
 fi
-
-exec "$@"
