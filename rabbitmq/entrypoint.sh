@@ -27,19 +27,25 @@ fi
 chown -R rabbitmq:rabbitmq /var/lib/rabbitmq
 
 # Setting Domain and Host Names
-# echo "Source hostname ${HOSTNAME}/`hostname -f`"
-if [ "${RABBITMQ_HOSTNAME:-}" ]; then
-	export HOSTNAME="${RABBITMQ_HOSTNAME}"
+if [ "${RABBITMQ_HOSTNAME:-}" ] || [ "${RABBITMQ_DOMAIN:-}" ]; then
+	echo "Source hostname ${HOSTNAME}/`hostname -f`"
+	if [ "${RABBITMQ_HOSTNAME:-}" ]; then
+		export HOSTNAME="${RABBITMQ_HOSTNAME}"
+	fi
+	if [ "${RABBITMQ_DOMAIN:-}" ]; then
+		sourceHostname="${HOSTNAME}"
+		destHostname="${sourceHostname}.${RABBITMQ_DOMAIN}"
+		export HOSTNAME="${destHostname}"
+	fi
+	echo "Setting hostname ${HOSTNAME}"
+	sudo hostname "$HOSTNAME"
+	echo "127.0.0.1 ${HOSTNAME}" >> /etc/hosts
+	echo "Hostname `hostname` set"
 fi
-if [ "${RABBITMQ_DOMAIN:-}" ]; then
-	sourceHostname="${HOSTNAME}"
-	destHostname="${sourceHostname}.${RABBITMQ_DOMAIN}"
-	export HOSTNAME="${destHostname}"
+
+if [ "${RABBITMQ_HOSTS:-}" ]; then
+	echo "\n${RABBITMQ_HOSTS}" >> /etc/hosts
 fi
-echo "Setting hostname ${HOSTNAME}"
-sudo hostname "$HOSTNAME"
-echo "127.0.0.1 ${HOSTNAME}" >> /etc/hosts
-echo "Hostname `hostname` set"
 
 # Joining cluster
 if [ "${RABBITMQ_CLUSTER:-}" ]; then
