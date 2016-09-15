@@ -1,0 +1,43 @@
+#
+# We are disabling ability to use this Docker image as proxy - only as Relay
+#
+SOCKSPolicy reject *
+
+#
+# Default settitngs send important messages to stdout and it is good for Docker
+#
+## Send all messages of level 'notice' or higher to /var/log/tor/notices.log
+#Log notice file /var/log/tor/notices.log
+## Send every possible message to /var/log/tor/debug.log
+#Log debug file /var/log/tor/debug.log
+## Use the system log instead of Tor's logfiles
+#Log notice syslog
+## To send all messages to stderr:
+#Log debug stderr
+
+#
+# Don't run as Daemon
+#
+#RunAsDaemon 1
+
+#
+# Change cache directory just to be shorter
+#
+DataDirectory /cache
+
+#
+# We are not enabling changing configuration on the fly, well, because it is docker!
+#
+#ControlPort 9051
+#HashedControlPassword 16:872860B76453A77D60CA2BB8C1A7042072093276A3D701AD684053EC4C
+#CookieAuthentication 1
+
+############### This section is just for location-hidden services ###
+
+# We are opening just 80 port to service-host
+HiddenServiceDir /var/lib/tor/hidden_service/
+HiddenServicePort 80 $ENDPOINT
+
+#
+# Other Settings are for Relays - skipping it
+#
