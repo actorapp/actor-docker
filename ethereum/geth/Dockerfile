@@ -9,8 +9,11 @@ RUN apt-get update && \
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 923F6CA9 && \
     echo "deb http://ppa.launchpad.net/ethereum/ethereum/ubuntu wily main" | tee -a /etc/apt/sources.list.d/ethereum.list && \
     apt-get update && \
-    apt-get install -q -y bootnode
+    apt-get install -q -y geth
 
-EXPOSE 30301
+EXPOSE 8545
+EXPOSE 30303
 
-ENTRYPOINT ["/usr/bin/bootnode"]
+ADD entry_point.sh /usr/bin/
+
+ENTRYPOINT ["/usr/bin/entry_point.sh"]
