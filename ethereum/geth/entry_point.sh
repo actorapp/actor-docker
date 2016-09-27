@@ -10,6 +10,11 @@ if [ "${GETH_GENESIS:-}" ]; then
 	/usr/bin/geth --datadir=$GETH_DATA init $GETH_GENESIS
 fi
 
+if [ "${GETH_WALLET:-}" ]; then
+	mkdir -p $GETH_DATA/keystore
+	cp -n $GETH_WALLET $GETH_DATA/keystore/imported
+fi
+
 if [ "${GETH_BOOTNODE_HOST:-}" ]; then
 	BOOTNODE=`dig +short $GETH_BOOTNODE_HOST | tail -n1`
 	echo "Boot Node found: $BOOTNODE from $GETH_BOOTNODE_HOST"
