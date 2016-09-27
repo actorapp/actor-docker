@@ -7,7 +7,7 @@ if [ ! "${GETH_DATA:-}" ]; then
 fi
 
 if [ "${GETH_GENESIS:-}" ]; then
-	/usr/bin/geth init --datadir=$GETH_DATA $GETH_GENESIS
+	/usr/bin/geth --datadir=$GETH_DATA init $GETH_GENESIS
 fi
 
 exec /usr/bin/geth --datadir=$GETH_DATA "$@"
