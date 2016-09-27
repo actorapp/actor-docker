@@ -9,7 +9,7 @@ RUN apt-get update && \
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 923F6CA9 && \
     echo "deb http://ppa.launchpad.net/ethereum/ethereum/ubuntu wily main" | tee -a /etc/apt/sources.list.d/ethereum.list && \
     apt-get update && \
-    apt-get install -q -y geth
+    apt-get install -q -y geth dnsutils
 
 EXPOSE 8545
 EXPOSE 30303
